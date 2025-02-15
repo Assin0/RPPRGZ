@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Мои заявки</title>
+</head>
+<body>
+    <h1>Мои заявки</h1>
+    
+    <form id="ticketForm">
+        <input type="text" id="title" placeholder="Заголовок заявки" required>
+        <textarea id="description" id="description" placeholder="Описание заявки" required></textarea>
+        <button type="submit">Создать заявку</button>
+    </form>
+    <p id="message"></p>
+
+    <h2>Список заявок</h2>
+    <ul id="ticketList">
+        {% for ticket in tickets %}
+            <li>
+                <a href="/tickets/{{ ticket.id }}">{{ ticket.title }}</a> - Статус: {{ ticket.status }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        document.getElementById('ticketForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+
+            const response = await fetch('/tickets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, description })
+            });
+
+            const data = await response.json();
+            document.getElementById('message').innerText = data.message;
+
+            if (response.ok) {
+                // Обновляем список заявок после успешного создания
+                const newTicket = document.createElement('li');
+                newTicket.innerHTML = `<a href="/tickets/${data.id}">${title}</a> - Статус: open`;
+                document.getElementById('ticketList').appendChild(newTicket);
+                document.getElementById('ticketForm').reset(); // Сбрасываем форму
+            }
+        };
+    </script>
+</body>
+</html>

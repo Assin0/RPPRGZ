@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Детали заявки</title>
+</head>
+<body>
+    <h1>Детали заявки</h1>
+    <div id="ticketDetail"></div>
+    <button id="deleteButton">Удалить заявку</button>
+    <a href="/tickets">Назад к заявкам</a>
+
+    <script>
+        const ticketId = window.location.pathname.split('/').pop(); // Получаем ID заявки из URL
+
+        async function loadTicketDetail() {
+            const response = await fetch(`/tickets/${ticketId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token') // Если вы используете токены для аутентификации
+                }
+            });
+
+            const ticket = await response.json();
+            if (response.ok) {
+                document.getElementById('ticketDetail').innerHTML = `
+                    <h2>${ticket.title}</h2>
+                    <p>${ticket.description}</p>
+                    <p>Статус: ${ticket.status}</p>
+                `;
+            } else {
+                document.getElementById('ticketDetail').innerText = ticket.message;
+            }
+        }
+
+        document.getElementById('deleteButton').onclick = async function() {
+            const response = await fetch(`/tickets/${ticketId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token') // Если вы используете токены для аутентификации
+                }
+            });
+
+            const data = await response.json();
+            alert(data.message);
+            if (response.ok) {
+                window.location.href = '/tickets'; // Перенаправляем на страницу заявок
+            }
+        };
+
+        // Загружаем детали заявки при загрузке страницы
+        window.onload = loadTicketDetail;
+    </script>
+</body>
+</html>
